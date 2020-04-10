@@ -38,12 +38,12 @@ contract ContractFactory {
     }
     
     function getProductionLimit(address producerAddress, string universalProductCode) public view returns(uint) {
-        require(msg.sender == committeeAddress);
+        require(msg.sender == committeeAddress, "Function only accessible to creator of this contract.");
         returns actors[producerAddress].productionLimits[universalProductCode]
     }
     
     function getRequest(address producerAddress, uint requestNo) public view returns(string, string, string, uint, uint, string[], address, string) {
-        require(msg.sender == committeeAddress);
+        require(msg.sender == committeeAddress, "Function only accessible to creator of this contract.");
         Request memory R = requestLog[producerAddress][requestNo];
         return (
             R.productName,
@@ -58,7 +58,7 @@ contract ContractFactory {
     }
     
     function registerActor(address id, string name) public {
-        require(msg.sender == committeeAddress);
+        require(msg.sender == committeeAddress, "Function only accessible to creator of this contract.");
         Actor memory newActor = Actor({
             name: name,
             presence: true
@@ -76,7 +76,7 @@ contract ContractFactory {
             address qualityCertification
         ) public {
             
-        require(actors[msg.sender].presence);
+        require(actors[msg.sender].presence, "Actor is not registered.");
         
         uint checkpoint = actors[msg.sender].productionLimits[universalProductCode];
         
@@ -89,7 +89,7 @@ contract ContractFactory {
         
         uint currentLimit = actors[msg.sender].productionLimits[universalProductCode];
         uint producedQuantity = perBatchQuantity*totalBatches;
-        require( producedQuantity <= currentLimit );
+        require( producedQuantity <= currentLimit, "Production limit exhausted");
         currentLimit = currentLimit - producedQuantity;
         actors[msg.sender].productionLimits[universalProductCode] = currentLimit;
         
