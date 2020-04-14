@@ -20,9 +20,9 @@ Invoice {
 Request = { universalProductCode, batchQuantity, status }
 Response = { requestStatus,  Invoice }
 M_requestLog = Request[]
-W_responseLog = Response[]
+mapping(address =>Response[]) W_responseLog
 M_inventory = batchIds[] 
-W_inventory = batchIds[]
+mapping(address => batchIds[]) W_inventory
 
 + Manufacturer Methods
 - registerWholesaler(name, type) returns(ack:bool)
