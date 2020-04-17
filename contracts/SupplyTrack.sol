@@ -32,30 +32,40 @@ contract SupplyTrack {
         string status;
     }
 
-    modifier restricted(string actorType) {
-        string memory error = string(abi.encodePacked("This function is restricted to ", actorType));
-        require(encode(actors[msg.sender].actorType) == encode(actorType), error);
+    modifier restricted(string[] actorTypes) {
+        mapping(string => bool) memory checker;
+        string memory error = "This function is restricted to [ ";
+        for(uint i = 0; i < actorTypes.length; i++) {
+            checker[actorTypes[i]] = true;
+            if(i == actorTypes.length-1) {
+                error = string(abi.encodePacked(error, actorType));
+            }
+            else {
+                error = string(abi.encodePacked(error, actorType, ", "));
+            }
+        }
+        error = string(abi.encodePacked(error, " ]"));
+        require(checker(actors[msg.sender].actorType), error);
         _;
     }
 
     uint private counter = 0;
-    address public producerAddress;
     Product public product;
     mapping(address => string[]) public inventory;
     mapping(address => Actor) public actors;
 
     mapping(uint => PruchaseRequest) public purchaseRequestLog;
-    uint[] public m_recievedRequestIds;
-    mapping(address => uint[]) public w_sentRequestIds;
+    mapping(address => uint[]) public recievedRequestIds;
+    mapping(address => uint[]) public sentRequestIds;
 
     mapping(uint => Invoice) public invoiceLog;
-    uint[] public m_sentInvoiceIds;
-    mapping(address => uint[]) public w_recievedInvoiceIds;
+    mapping(address => uint[]) public sentInvoiceIds;
+    mapping(address => uint[]) public recievedInvoiceIds;
 
 
     constructor(
         string producerName,
-        address _producerAddress,
+        address producerAddress,
         string productName,
         string universalProductCode,
         string productDescription,
@@ -75,8 +85,7 @@ contract SupplyTrack {
                 actorName:producerName,
                 actorType:"Manufaturer"
             });
-            actors[_producerAddress] = newActor;
-            producerAddress = _producerAddress;
+            actors[producerAddress] = newActor;
             inventory[producerAddress] = batchIds;
     }
 
@@ -86,13 +95,13 @@ contract SupplyTrack {
         return ++counter;
     }
 
-    function encode(string Str) public pure returns(bytes32) {
+    function encode(string Str) private pure returns(bytes32) {
         return keccak256(abi.encodePacked(Str));
     }
 
-    // Manufaturer Methods
+    // Actor Methods
 
-    function registerWholesaler(address wholesalerAddress, string wholesalerName) public restricted("Manufaturer") {
+    function registerWholesaler(address wholesalerAddress, string wholesalerName) public restricted(["Manufaturer"]) {
         Actor memory newActor = Actor({
             actorName:wholesalerName,
             actorType:"Wholesaler"
@@ -100,7 +109,30 @@ contract SupplyTrack {
         actors[wholesalerAddress] = newActor;
     }
 
-    function handlePurchaseRequest(uint purReqId, string status) public restricted("Manufaturer") {
+    function registerRetailer(address retailerAddress, string retailerName) public restricted(["Wholesaler"]) {
+        Actor memory newActor = Actor({
+            actorName:retailerName,
+            actorType:"Retailer"
+        });
+        actors[retailerAddress] = newActor;
+    }
+
+    function requestToBuy(string universalProductCode, uint batchQuantity, address sellerAddress) public restricted(["Wholesaler", "Retailer"]) {
+        uint id = getUniqueId();
+        string memory error = string(abi.encodePacked("This contract is for UPC ", universalProductCode));
+        require(encode(product.universalProductCode) == encode(universalProductCode), error);
+        PruchaseRequest memory newPruchaseRequest = PruchaseRequest({
+            reqId:id,
+            sender:msg.sender,
+            batchQuantity:batchQuantity,
+            status:"Pending"
+        });
+        sentRequestIds[msg.sender].push(newPruchaseRequest.reqId);
+        purchaseRequestLog[newPruchaseRequest.reqId] = newPruchaseRequest;
+        recievedRequestIds[sellerAddress].push(newPruchaseRequest.reqId);
+    }
+
+    function handlePurchaseRequest(uint purReqId, string status) public restricted(["Manufaturer", "Wholesaler"]) {
 
         purchaseRequestLog[purReqId].status = status;
         if(encode(status) == encode("Accepted")) {
@@ -121,38 +153,22 @@ contract SupplyTrack {
                     totalPrice:totalPrice,
                     status:"Pending"
                 });
-                m_sentInvoiceIds.push(newInvoice.invoiceId);
+                sentInvoiceIds[msg.sender].push(newInvoice.invoiceId);
                 invoiceLog[newInvoice.invoiceId] = newInvoice;
-                w_recievedInvoiceIds[request.sender].push(newInvoice.invoiceId);
+                recievedInvoiceIds[request.sender].push(newInvoice.invoiceId);
             }
         }
     }
 
-    // Wholesaler Methods
-
-    function requestToBuy(string universalProductCode, uint batchQuantity) public restricted("Wholesaler") {
-        uint id = getUniqueId();
-        string memory error = string(abi.encodePacked("This contract is for UPC ", universalProductCode));
-        require(encode(product.universalProductCode) == encode(universalProductCode), error);
-        PruchaseRequest memory newPruchaseRequest = PruchaseRequest({
-            reqId:id,
-            sender:msg.sender,
-            batchQuantity:batchQuantity,
-            status:"Pending"
-        });
-        w_sentRequestIds[msg.sender].push(newPruchaseRequest.reqId);
-        purchaseRequestLog[newPruchaseRequest.reqId] = newPruchaseRequest;
-        m_recievedRequestIds.push(newPruchaseRequest.reqId);
-    }
-
-    function payAndFinalizeTransaction(uint invoiceId) public payable restricted("Wholesaler") {
+    function payAndFinalizeTransaction(uint invoiceId) public payable restricted(["Wholesaler", "Retailer"]) {
         Invoice memory invoice = invoiceLog[invoiceId];
         require(msg.value == invoice.totalPrice, "Did not exactly the amount of ether required");
         invoice.benificiary.transfer(msg.value);
-        invoiceLog[invoiceId].status = "paid";
+        invoiceLog[invoiceId].status = "Paid";
         for(uint i = 0; i < invoice.totalBatches; i++) {
             inventory[msg.sender].push(inventory[invoice.benificiary][inventory[invoice.benificiary].length - 1]);
             delete inventory[invoice.benificiary][inventory[invoice.benificiary].length - 1];
+            inventory[invoice.benificiary].length--;
         }
         product.totalBatches = product.totalBatches - invoice.totalBatches;
     }
