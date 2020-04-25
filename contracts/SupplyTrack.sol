@@ -32,26 +32,35 @@ contract SupplyTrack {
         string status;
     }
 
-    struct Coustomer {
-        string coustomerId;
+    struct Customer {
+        string customerId;
         string name;
         string[] batchesBought;
     }
 
-    modifier restricted(string[] actorTypes) {
-        mapping(string => bool) memory checker;
+    mapping(string => bool) checker;
+    mapping(uint => string) actorTypeMap;
+
+    modifier restricted(uint8[2] actorTypes) {
+
+        actorTypeMap[0] = "";
+        actorTypeMap[1] = "Manufacturer";
+        actorTypeMap[2] = "Wholesaler";
+        actorTypeMap[3] = "Retailer";
+
         string memory error = "This function is restricted to [ ";
         for(uint i = 0; i < actorTypes.length; i++) {
-            checker[actorTypes[i]] = true;
+            checker[actorTypeMap[actorTypes[i]]] = true;
+            checker[""] = false;
             if(i == actorTypes.length-1) {
-                error = string(abi.encodePacked(error, actorType));
+                error = string(abi.encodePacked(error, actorTypeMap[actorTypes[i]]));
             }
             else {
-                error = string(abi.encodePacked(error, actorType, ", "));
+                error = string(abi.encodePacked(error, actorTypeMap[actorTypes[i]], ", "));
             }
         }
         error = string(abi.encodePacked(error, " ]"));
-        require(checker(actors[msg.sender].actorType), error);
+        require(checker[actors[msg.sender].actorType], error);
         _;
     }
 
@@ -69,7 +78,7 @@ contract SupplyTrack {
     mapping(address => uint[]) public recievedInvoiceIds;
 
     mapping(string => uint) public productEndpoint;
-    mapping(uint => Coustomer) coustomerRegistry;
+    mapping(uint => Customer) public customerRegistry;
 
     constructor(
         string producerName,
@@ -109,7 +118,7 @@ contract SupplyTrack {
 
     // Actor Methods
 
-    function registerWholesaler(address wholesalerAddress, string wholesalerName) public restricted(["Manufaturer"]) {
+    function registerWholesaler(address wholesalerAddress, string wholesalerName) public restricted([1, 0]) {
         Actor memory newActor = Actor({
             actorName:wholesalerName,
             actorType:"Wholesaler"
@@ -117,7 +126,7 @@ contract SupplyTrack {
         actors[wholesalerAddress] = newActor;
     }
 
-    function registerRetailer(address retailerAddress, string retailerName) public restricted(["Wholesaler"]) {
+    function registerRetailer(address retailerAddress, string retailerName) public restricted([2, 0]) {
         Actor memory newActor = Actor({
             actorName:retailerName,
             actorType:"Retailer"
@@ -125,7 +134,7 @@ contract SupplyTrack {
         actors[retailerAddress] = newActor;
     }
 
-    function requestToBuy(string universalProductCode, uint batchQuantity, address sellerAddress) public restricted(["Wholesaler", "Retailer"]) {
+    function requestToBuy(string universalProductCode, uint batchQuantity, address sellerAddress) public restricted([2, 3]) {
         uint id = getUniqueId();
         string memory error = string(abi.encodePacked("This contract is for UPC ", universalProductCode));
         require(encode(product.universalProductCode) == encode(universalProductCode), error);
@@ -140,7 +149,7 @@ contract SupplyTrack {
         recievedRequestIds[sellerAddress].push(newPruchaseRequest.reqId);
     }
 
-    function handlePurchaseRequest(uint purReqId, string status) public restricted(["Manufaturer", "Wholesaler"]) {
+    function handlePurchaseRequest(uint purReqId, string status) public restricted([1, 2]) {
 
         purchaseRequestLog[purReqId].status = status;
         if(encode(status) == encode("Accepted")) {
@@ -168,7 +177,7 @@ contract SupplyTrack {
         }
     }
 
-    function payAndFinalizeTransaction(uint invoiceId) public payable restricted(["Wholesaler", "Retailer"]) {
+    function payAndFinalizeTransaction(uint invoiceId) public payable restricted([2, 3]) {
         Invoice memory invoice = invoiceLog[invoiceId];
         require(msg.value == invoice.totalPrice, "Did not exactly the amount of ether required");
         invoice.benificiary.transfer(msg.value);
@@ -181,28 +190,29 @@ contract SupplyTrack {
         product.totalBatches = product.totalBatches - invoice.totalBatches;
     }
 
-    function logCoustomer(string name, string coustomerId, uint batchesNeeded) public restricted(["Retailer"]) {
+    function logCustomer(string name, string customerId, uint batchesNeeded) public restricted([3, 0]) {
 
         address retailer = msg.sender;
-        string[] batchesBought;
+        uint id = getUniqueId();
+        string[] storage allotedBatches;
 
         //BUYING CONDITION CHECKING
 
         require(inventory[retailer].length >= batchesNeeded, "Not enough Stock");
 
         for(uint i = 0; i < batchesNeeded; i++) {
-            batchesBought.push(inventory[retailer][inventory[retailer].length - 1]);
-            productEndpoint(inventory[retailer][inventory[retailer].length - 1]) = coustomerId;
+            allotedBatches.push(inventory[retailer][inventory[retailer].length - 1]);
+            productEndpoint[inventory[retailer][inventory[retailer].length - 1]] = id;
             delete inventory[retailer][inventory[retailer].length - 1];
             inventory[retailer].length--;
         }
 
-        Coustomer memory newCoustomer = Coustomer({
-            coustomerId:coustomerId,
+        Customer memory newCustomer = Customer({
+            customerId:customerId,
             name:name,
-            batchesBought:batchesBought
+            batchesBought:allotedBatches
         });
 
-        coustomerRegistry[id] = newCoustomer;
+        customerRegistry[id] = newCustomer;
     }
 }
