@@ -77,7 +77,7 @@ contract SupplyTrack {
     mapping(address => uint[]) public sentInvoiceIds;
     mapping(address => uint[]) public recievedInvoiceIds;
 
-    mapping(string => uint) public productEndpoint;
+    mapping(string => uint) productEndpoint;
     mapping(uint => Customer) public customerRegistry;
 
     constructor(
@@ -104,6 +104,12 @@ contract SupplyTrack {
             });
             actors[producerAddress] = newActor;
             inventory[producerAddress] = batchIds;
+    }
+
+    // Getter Methods
+
+    function getProductEndpoint(string batchId) public view returns(uint){
+        return productEndpoint[batchId];
     }
 
     // Contract Methods
