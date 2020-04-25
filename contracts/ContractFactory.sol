@@ -1,5 +1,6 @@
 pragma solidity ^0.4.17;
 pragma experimental ABIEncoderV2;
+import './7_SupplyTrack.sol';
 
 contract QualityCheck {
     function verifyRequest(address producerAddress, string universalProductCode) public pure returns(uint) { }
@@ -16,6 +17,7 @@ contract ContractFactory {
         string[] batchIds;
         address qualityCertification;
         string requestStatus;
+        uint pricePerBatch;
     }
     
     // requestStatuses = { Accepted, Rejected }
@@ -53,7 +55,8 @@ contract ContractFactory {
             R.totalBatches,
             R.batchIds,
             R.qualityCertification,
-            R.requestStatus
+            R.requestStatus,
+            R.pricePerBatch
         );
     }
     
@@ -73,25 +76,27 @@ contract ContractFactory {
             uint perBatchQuantity,
             uint totalBatches,
             string[] batchIds,
-            address qualityCertification
-        ) public {
-            
-        require(actors[msg.sender].presence, "Actor is not registered.");
+            address qualityCertification,
+            uint pricePerBatch
+        ) public {    
+        address producerAddress = msg.sender;
         
-        uint checkpoint = actors[msg.sender].productionLimits[universalProductCode];
+        require(actors[producerAddress].presence, "Actor is not registered.");
+        
+        uint checkpoint = actors[producerAddress].productionLimits[universalProductCode];
         
         if(checkpoint > 0) { }
         else {
             Q = QualityCheck(qualityCertification);
-            uint productionLimit = Q.verifyRequest(msg.sender, universalProductCode);
-            actors[msg.sender].productionLimits[universalProductCode] = productionLimit;
+            uint productionLimit = Q.verifyRequest(producerAddress, universalProductCode);
+            actors[producerAddress].productionLimits[universalProductCode] = productionLimit;
         }
         
-        uint currentLimit = actors[msg.sender].productionLimits[universalProductCode];
+        uint currentLimit = actors[producerAddress].productionLimits[universalProductCode];
         uint producedQuantity = perBatchQuantity*totalBatches;
         require( producedQuantity <= currentLimit, "Production limit exhausted");
         currentLimit = currentLimit - producedQuantity;
-        actors[msg.sender].productionLimits[universalProductCode] = currentLimit;
+        actors[producerAddress].productionLimits[universalProductCode] = currentLimit;
         
         Request memory newRequest = Request({
             productName: productName,
@@ -101,10 +106,23 @@ contract ContractFactory {
             totalBatches: totalBatches,
             batchIds: batchIds,
             qualityCertification: qualityCertification,
-            requestStatus: "Accepted"
+            requestStatus: "Accepted",
+            pricePerBatch: pricePerBatch
         });
-        requestLog[msg.sender].push(newRequest);
+        requestLog[producerAddress].push(newRequest);
         
-        //Instanciate
+        address newTrackAddress = new SupplyTrack(
+            actors[producerAddress].name,
+            producerAddress,
+            productName,
+            universalProductCode,
+            productDescription,
+            perBatchQuantity,
+            totalBatches,
+            pricePerBatch,
+            batchIds
+        );
+        deployedContracts.push(newTrackAddress);
+        
     }
 }

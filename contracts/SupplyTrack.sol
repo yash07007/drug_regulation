@@ -32,6 +32,12 @@ contract SupplyTrack {
         string status;
     }
 
+    struct Coustomer {
+        string coustomerId;
+        string name;
+        string[] batchesBought;
+    }
+
     modifier restricted(string[] actorTypes) {
         mapping(string => bool) memory checker;
         string memory error = "This function is restricted to [ ";
@@ -62,6 +68,8 @@ contract SupplyTrack {
     mapping(address => uint[]) public sentInvoiceIds;
     mapping(address => uint[]) public recievedInvoiceIds;
 
+    mapping(string => uint) public productEndpoint;
+    mapping(uint => Coustomer) coustomerRegistry;
 
     constructor(
         string producerName,
@@ -171,5 +179,30 @@ contract SupplyTrack {
             inventory[invoice.benificiary].length--;
         }
         product.totalBatches = product.totalBatches - invoice.totalBatches;
+    }
+
+    function logCoustomer(string name, string coustomerId, uint batchesNeeded) public restricted(["Retailer"]) {
+
+        address retailer = msg.sender;
+        string[] batchesBought;
+
+        //BUYING CONDITION CHECKING
+
+        require(inventory[retailer].length >= batchesNeeded, "Not enough Stock");
+
+        for(uint i = 0; i < batchesNeeded; i++) {
+            batchesBought.push(inventory[retailer][inventory[retailer].length - 1]);
+            productEndpoint(inventory[retailer][inventory[retailer].length - 1]) = coustomerId;
+            delete inventory[retailer][inventory[retailer].length - 1];
+            inventory[retailer].length--;
+        }
+
+        Coustomer memory newCoustomer = Coustomer({
+            coustomerId:coustomerId,
+            name:name,
+            batchesBought:batchesBought
+        });
+
+        coustomerRegistry[id] = newCoustomer;
     }
 }

@@ -12,8 +12,6 @@ contract QualityCheck {
         uint productionLimit;
     }
 
-    // requestStatuses = { Pending, Accepted, Rejected }
-
     address public manager;
     address[] public clients;
     mapping(address => Certificate[]) registry;
