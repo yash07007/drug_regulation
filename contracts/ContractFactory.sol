@@ -1,6 +1,6 @@
 pragma solidity ^0.4.17;
 pragma experimental ABIEncoderV2;
-import './7_SupplyTrack.sol';
+import './SupplyTrack.sol';
 
 contract QualityCheck {
     function verifyRequest(address producerAddress, string universalProductCode) public pure returns(uint) { }
