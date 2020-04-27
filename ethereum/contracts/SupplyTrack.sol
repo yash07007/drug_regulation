@@ -100,7 +100,7 @@ contract SupplyTrack {
             });
             Actor memory newActor = Actor({
                 actorName:producerName,
-                actorType:"Manufaturer"
+                actorType:"Manufacturer"
             });
             actors[producerAddress] = newActor;
             inventory[producerAddress] = batchIds;

@@ -14,23 +14,10 @@ contract QualityCheck {
 
     address public manager;
     address[] public clients;
-    mapping(address => Certificate[]) registry;
+    mapping(address => Certificate[]) public registry;
 
     constructor() public {
         manager = msg.sender;
-    }
-
-    function getCertificate(address producerAddress, uint cerificateNo) public view returns(address, string, string, string, string, uint) {
-        require(msg.sender == manager, "Function only accessible to creator of this contract.");
-        Certificate memory C = registry[producerAddress][cerificateNo];
-        return (
-            C.producerAddress,
-            C.productName,
-            C.universalProductCode,
-            C.productDescription,
-            C.requestStatus,
-            C.productionLimit
-        );
     }
 
     function registerRequest(string productName, string universalProductCode, string productDescription) public payable returns(uint) {
