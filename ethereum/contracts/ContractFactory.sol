@@ -2,8 +2,8 @@ pragma solidity ^0.4.26;
 pragma experimental ABIEncoderV2;
 import './SupplyTrack.sol';
 
-contract QualityCheck {
-    function verifyRequest(address producerAddress, string universalProductCode) public pure returns(uint) { }
+contract QualityCertifier {
+    function verifyRequest(address, string) public pure returns(uint) { }
 }
 
 contract ContractFactory {
@@ -15,28 +15,29 @@ contract ContractFactory {
         uint perBatchQuantity;
         uint totalBatches;
         string[] batchIds;
-        address qualityCertification;
+        bool certificationStatus;
         string requestStatus;
         uint pricePerBatch;
     }
 
-    // requestStatuses = { Accepted, Rejected }
-
     struct Actor {
         string name;
         mapping(string => uint) productionLimits;
+        mapping(string => bool) isCertified;
         bool presence;
     }
 
 
     address public committeeAddress;
+    address public certifierAddress;
     address[] public deployedContracts;
     mapping(address => Request[]) public requestLog;
     mapping(address => Actor) public actors;
-    QualityCheck Q;
+    QualityCertifier certifierInstance = QualityCertifier(certifierAddress);
 
-    constructor() public {
+    constructor(address _certifierAddress) public {
         committeeAddress = msg.sender;
+        certifierAddress = _certifierAddress;
     }
 
     function getProductionLimit(address producerAddress, string universalProductCode) public view returns(uint) {
@@ -60,27 +61,26 @@ contract ContractFactory {
             uint perBatchQuantity,
             uint totalBatches,
             string[] batchIds,
-            address qualityCertification,
             uint pricePerBatch
         ) public {
 
-        // producerAddress = msg.sender;
+        address producerAddress = msg.sender;
 
-        require(actors[msg.sender].presence, "Actor is not registered.");
+        require(actors[producerAddress].presence, "Actor is not registered.");
 
-        uint checkpoint = actors[msg.sender].productionLimits[universalProductCode];
+        bool isCertified = actors[producerAddress].isCertified[universalProductCode];
 
-        if(checkpoint > 0) { }
-        else {
-            Q = QualityCheck(qualityCertification);
-            actors[msg.sender].productionLimits[universalProductCode] = Q.verifyRequest(msg.sender, universalProductCode);
+        if(!isCertified) {
+            actors[producerAddress].productionLimits[universalProductCode] = certifierInstance.verifyRequest(producerAddress, universalProductCode);
         }
 
-        uint currentLimit = actors[msg.sender].productionLimits[universalProductCode];
-        uint producedQuantity = perBatchQuantity*totalBatches;
-        require(producedQuantity <= currentLimit, "Production limit exhausted");
-        currentLimit = currentLimit - producedQuantity;
-        actors[msg.sender].productionLimits[universalProductCode] = currentLimit;
+        uint currentProductionLimit = actors[producerAddress].productionLimits[universalProductCode];
+        uint requestedQuantity = perBatchQuantity*totalBatches;
+
+        require(requestedQuantity <= currentProductionLimit, "Production limit exhausted");
+
+        currentProductionLimit = currentProductionLimit - requestedQuantity;
+        actors[producerAddress].productionLimits[universalProductCode] = currentProductionLimit;
 
         Request memory newRequest = Request({
             productName: productName,
@@ -89,15 +89,15 @@ contract ContractFactory {
             perBatchQuantity: perBatchQuantity,
             totalBatches: totalBatches,
             batchIds: batchIds,
-            qualityCertification: qualityCertification,
+            certificationStatus: isCertified,
             requestStatus: "Accepted",
             pricePerBatch: pricePerBatch
         });
-        requestLog[msg.sender].push(newRequest);
+        requestLog[producerAddress].push(newRequest);
 
         address newTrackAddress = new SupplyTrack(
-            actors[msg.sender].name,
-            msg.sender,
+            actors[producerAddress].name,
+            producerAddress,
             productName,
             universalProductCode,
             productDescription,
