@@ -8,15 +8,15 @@ contract("QualityCertifier", function (accounts) {
     const regulatoryCommitte = accounts[1];
     const certifier = accounts[2];
     const manufacturer = accounts[3];
-    const wholesaler = accounts[4];
-    const retailer = accounts[5];
+    // const wholesaler = accounts[4];
+    // const retailer = accounts[5];
 
     beforeEach(async () => {
         this.qualityCertifier = await QualityCertifier.new({ from: certifier });
     });
 
-    describe("Initialization", async () => {
-        it("constructer(): marks caller as campaign manager.", async () => {
+    describe("constructer():", async () => {
+        it("marks caller as campaign manager.", async () => {
             const certifierAddress = await this.qualityCertifier.manager({
                 from: certifier,
             });
@@ -200,6 +200,65 @@ contract("QualityCertifier", function (accounts) {
                 1000,
                 certificate.productionLimit,
                 "Production limit not set to specified value."
+            );
+        });
+    });
+    describe("verifyRequest():", async () => {
+        it("returns a correct production limit", async () => {
+            const _productName = "Blue Drug";
+            const _universalProductCode = "B001";
+            const _productDescription = "Drug that does something";
+
+            const { logs } = await this.qualityCertifier.registerRequest(
+                _productName,
+                _universalProductCode,
+                _productDescription,
+                {
+                    from: manufacturer,
+                    value: web3.utils.toWei("0.1", "ether"),
+                }
+            );
+
+            const returnCertificateEvent = logs.find(
+                (e) => e.event === "returnCertificateNo"
+            );
+
+            const certificateNo =
+                returnCertificateEvent.args.certificateNo.words[0];
+
+            assert.exists(certificateNo, "does not return a certificateNo.");
+
+            const _producerAddress = manufacturer;
+            const _certificateNo = certificateNo;
+            const _requestStatus = "Accepted";
+            const _productionLimit = 1000;
+
+            await this.qualityCertifier.processRequest(
+                _producerAddress,
+                _certificateNo,
+                _requestStatus,
+                _productionLimit,
+                {
+                    from: certifier,
+                }
+            );
+
+            const productionLimit = await this.qualityCertifier.verifyRequest(
+                _producerAddress,
+                _universalProductCode,
+                {
+                    from: regulatoryCommitte,
+                }
+            );
+
+            assert.exists(
+                productionLimit,
+                "Producation limit does not exists."
+            );
+            assert.equal(
+                _productionLimit,
+                productionLimit,
+                "Production limits does not match."
             );
         });
     });
