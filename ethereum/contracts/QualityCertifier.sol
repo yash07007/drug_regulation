@@ -12,6 +12,8 @@ contract QualityCertifier {
         uint productionLimit;
     }
 
+    event returnCertificateNo(uint certificateNo);
+
     address public manager;
     address[] public clients;
     mapping(address => Certificate[]) public registry;
@@ -20,7 +22,11 @@ contract QualityCertifier {
         manager = msg.sender;
     }
 
-    function registerRequest(string productName, string universalProductCode, string productDescription) public payable returns(uint) {
+    function getClients() public view returns(address[]) {
+        return clients;
+    }
+
+    function registerRequest(string productName, string universalProductCode, string productDescription) public payable {
         require(msg.value == 0.1 ether, "Payment of exactly 0.1 ether is needed to complete this transaction.");
         Certificate memory newCertificate = Certificate({
             producerAddress: msg.sender,
@@ -33,7 +39,8 @@ contract QualityCertifier {
 
         registry[msg.sender].push(newCertificate);
         clients.push(msg.sender);
-        return (registry[msg.sender].length - 1);
+
+        emit returnCertificateNo(registry[msg.sender].length - 1);
     }
 
     function processRequest(address producerAddress, uint certificateNo, string requestStatus, uint productionLimit) public {
