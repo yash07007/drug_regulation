@@ -29,33 +29,9 @@ contract("QualityCertifier", function (accounts) {
     });
 
     describe("registerRequest(): ", async () => {
-        beforeEach(async () => {
-            const _productName = "Blue Drug";
-            const _universalProductCode = "B001";
-            const _productDescription = "Drug that does something";
-
-            const { logs } = await this.qualityCertifier.registerRequest(
-                _productName,
-                _universalProductCode,
-                _productDescription,
-                {
-                    from: manufacturer,
-                    value: web3.utils.toWei("0.1", "ether"),
-                }
-            );
-
-            const returnCertificateEvent = logs.find(
-                (e) => e.event === "returnCertificateNo"
-            );
-
-            this.certificateNo =
-                returnCertificateEvent.args.certificateNo.words[0];
-
-            assert.exists(
-                this.certificateNo,
-                "does not return a certificateNo."
-            );
-        });
+        const _productName = "Blue Drug";
+        const _universalProductCode = "B001";
+        const _productDescription = "Drug that does something";
 
         it("accepts only correct amount of ether.", async () => {
             try {
@@ -75,9 +51,28 @@ contract("QualityCertifier", function (accounts) {
         });
 
         it("logs the request in registry", async () => {
+            const { logs } = await this.qualityCertifier.registerRequest(
+                _productName,
+                _universalProductCode,
+                _productDescription,
+                {
+                    from: manufacturer,
+                    value: web3.utils.toWei("0.1", "ether"),
+                }
+            );
+
+            const returnCertificateEvent = logs.find(
+                (e) => e.event === "returnCertificateNo"
+            );
+
+            const certificateNo =
+                returnCertificateEvent.args.certificateNo.words[0];
+
+            assert.exists(certificateNo, "does not return a certificateNo.");
+
             const certificate = await this.qualityCertifier.registry(
                 manufacturer,
-                this.certificateNo
+                certificateNo
             );
 
             assert.exists(certificate, "certificate does not exists.");
@@ -114,6 +109,16 @@ contract("QualityCertifier", function (accounts) {
         });
 
         it("logs client's address.", async () => {
+            await this.qualityCertifier.registerRequest(
+                _productName,
+                _universalProductCode,
+                _productDescription,
+                {
+                    from: manufacturer,
+                    value: web3.utils.toWei("0.1", "ether"),
+                }
+            );
+
             const clients = await this.qualityCertifier.getClients();
             let isPresent = false;
             for (let index = 0; index < clients.length; index++) {
@@ -125,11 +130,15 @@ contract("QualityCertifier", function (accounts) {
         });
     });
     describe("processRequest():", async () => {
-        beforeEach(async () => {
-            const _productName = "Blue Drug";
-            const _universalProductCode = "B001";
-            const _productDescription = "Drug that does something";
+        const _productName = "Blue Drug";
+        const _universalProductCode = "B001";
+        const _productDescription = "Drug that does something";
 
+        const _producerAddress = manufacturer;
+        let _certificateNo;
+        const _requestStatus = "Accepted";
+        const _productionLimit = 1000;
+        beforeEach(async () => {
             const { logs } = await this.qualityCertifier.registerRequest(
                 _productName,
                 _universalProductCode,
@@ -152,20 +161,7 @@ contract("QualityCertifier", function (accounts) {
                 "does not return a certificateNo."
             );
 
-            const _producerAddress = manufacturer;
-            const _certificateNo = this.certificateNo;
-            const _requestStatus = "Accepted";
-            const _productionLimit = 1000;
-
-            await this.qualityCertifier.processRequest(
-                _producerAddress,
-                _certificateNo,
-                _requestStatus,
-                _productionLimit,
-                {
-                    from: certifier,
-                }
-            );
+            _certificateNo = this.certificateNo;
         });
 
         it("only gives access to manager.", async () => {
@@ -186,9 +182,19 @@ contract("QualityCertifier", function (accounts) {
         });
 
         it('assigns "Accepted" status and production limit.', async () => {
+            await this.qualityCertifier.processRequest(
+                _producerAddress,
+                _certificateNo,
+                _requestStatus,
+                _productionLimit,
+                {
+                    from: certifier,
+                }
+            );
+
             const certificate = await this.qualityCertifier.registry(
                 manufacturer,
-                this.certificateNo
+                _certificateNo
             );
 
             assert.equal(
@@ -204,11 +210,14 @@ contract("QualityCertifier", function (accounts) {
         });
     });
     describe("verifyRequest():", async () => {
-        it("returns a correct production limit", async () => {
-            const _productName = "Blue Drug";
-            const _universalProductCode = "B001";
-            const _productDescription = "Drug that does something";
+        const _productName = "Blue Drug";
+        const _universalProductCode = "B001";
+        const _productDescription = "Drug that does something";
 
+        const _producerAddress = manufacturer;
+        const _requestStatus = "Accepted";
+        const _productionLimit = 1000;
+        beforeEach(async () => {
             const { logs } = await this.qualityCertifier.registerRequest(
                 _productName,
                 _universalProductCode,
@@ -223,15 +232,10 @@ contract("QualityCertifier", function (accounts) {
                 (e) => e.event === "returnCertificateNo"
             );
 
-            const certificateNo =
+            const _certificateNo =
                 returnCertificateEvent.args.certificateNo.words[0];
 
-            assert.exists(certificateNo, "does not return a certificateNo.");
-
-            const _producerAddress = manufacturer;
-            const _certificateNo = certificateNo;
-            const _requestStatus = "Accepted";
-            const _productionLimit = 1000;
+            assert.exists(_certificateNo, "does not return a certificateNo.");
 
             await this.qualityCertifier.processRequest(
                 _producerAddress,
@@ -242,7 +246,9 @@ contract("QualityCertifier", function (accounts) {
                     from: certifier,
                 }
             );
+        });
 
+        it("returns a correct production limit", async () => {
             const productionLimit = await this.qualityCertifier.verifyRequest(
                 _producerAddress,
                 _universalProductCode,

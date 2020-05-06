@@ -27,17 +27,19 @@ contract ContractFactory {
         bool presence;
     }
 
+    event actorDataUpdated(string _name, string _universalProductCode, bool _isCertified, uint _productionLimit);
 
     address public committeeAddress;
     address public certifierAddress;
     address[] public deployedContracts;
     mapping(address => Request[]) public requestLog;
     mapping(address => Actor) public actors;
-    QualityCertifier certifierInstance = QualityCertifier(certifierAddress);
+    QualityCertifier certifierInstance;
 
     constructor(address _certifierAddress) public {
         committeeAddress = msg.sender;
         certifierAddress = _certifierAddress;
+        certifierInstance = QualityCertifier(_certifierAddress);
     }
 
     function getProductionLimit(address producerAddress, string universalProductCode) public view returns(uint) {
@@ -69,18 +71,29 @@ contract ContractFactory {
         require(actors[producerAddress].presence, "Actor is not registered.");
 
         bool isCertified = actors[producerAddress].isCertified[universalProductCode];
+        uint productionLimit = actors[producerAddress].productionLimits[universalProductCode];
 
         if(!isCertified) {
-            actors[producerAddress].productionLimits[universalProductCode] = certifierInstance.verifyRequest(producerAddress, universalProductCode);
+            productionLimit = certifierInstance.verifyRequest(producerAddress, universalProductCode);
+            if(productionLimit > 0) {
+                isCertified = true;
+                actors[producerAddress].productionLimits[universalProductCode] = productionLimit;
+                actors[producerAddress].isCertified[universalProductCode] = isCertified;
+                emit actorDataUpdated(
+                    actors[producerAddress].name,
+                    universalProductCode,
+                    isCertified,
+                    productionLimit
+                );
+            }
         }
 
-        uint currentProductionLimit = actors[producerAddress].productionLimits[universalProductCode];
         uint requestedQuantity = perBatchQuantity*totalBatches;
 
-        require(requestedQuantity <= currentProductionLimit, "Production limit exhausted");
+        require(requestedQuantity <= productionLimit, "Production limit exhausted");
 
-        currentProductionLimit = currentProductionLimit - requestedQuantity;
-        actors[producerAddress].productionLimits[universalProductCode] = currentProductionLimit;
+        productionLimit = productionLimit - requestedQuantity;
+        actors[producerAddress].productionLimits[universalProductCode] = productionLimit;
 
         Request memory newRequest = Request({
             productName: productName,
