@@ -2,3 +2,4 @@ node_modules
 ethereum/build
 ethereum/old-way
 *.code-workspace
+.next

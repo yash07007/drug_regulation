@@ -1,28 +1,35 @@
 {
-  "name": "drugregulation",
-  "version": "1.0.0",
-  "description": "A supply track regular system on ethereum and react",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/yash07007/DrugRegulation.git"
-  },
-  "author": "Yash Solanki",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/yash07007/DrugRegulation/issues"
-  },
-  "homepage": "https://github.com/yash07007/DrugRegulation#readme",
-  "dependencies": {
-    "chai": "^4.2.0",
-    "fs-extra": "^9.0.0",
-    "ganache-cli": "^6.9.1",
-    "mocha": "^7.1.2",
-    "solc": "^0.4.26",
-    "truffle-hdwallet-provider": "^1.0.17",
-    "web3": "^1.0.0-beta.26"
-  }
+    "name": "drugregulation",
+    "version": "1.0.0",
+    "description": "A supply track regular system on ethereum and react",
+    "main": "index.js",
+    "scripts": {
+        "test": "cd ethereum && truffle test",
+        "migrate": "cd ethereum && truffle migrate --network rinkeby reset",
+        "start": "node server.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/yash07007/DrugRegulation.git"
+    },
+    "author": "Yash Solanki",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/yash07007/DrugRegulation/issues"
+    },
+    "homepage": "https://github.com/yash07007/DrugRegulation#readme",
+    "dependencies": {
+        "chai": "^4.2.0",
+        "fs-extra": "^9.0.0",
+        "ganache-cli": "^6.9.1",
+        "mocha": "^7.1.2",
+        "next": "^9.3.6",
+        "next-routes": "^1.4.2",
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1",
+        "semantic-ui-react": "^0.88.2",
+        "solc": "^0.4.26",
+        "truffle-hdwallet-provider": "^1.0.17",
+        "web3": "^1.0.0-beta.26"
+    }
 }
