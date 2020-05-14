@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "cd ethereum && truffle test",
-        "migrate": "cd ethereum && truffle migrate --network rinkeby reset",
+        "migrate": "cd ethereum && rm -rf build && truffle migrate --network rinkeby reset",
         "start": "node server.js"
     },
     "repository": {
