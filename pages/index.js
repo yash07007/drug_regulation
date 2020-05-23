@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 // import factory from "../ethereum/factory";
-import { Segment, Header, Grid, Icon } from "semantic-ui-react";
+import { Segment, Header, Grid, Icon, GridColumn } from "semantic-ui-react";
 import Layout from "../components/Layout";
 import { Link } from "../routes";
 import address from "../addresses";
@@ -11,18 +11,29 @@ class Index extends Component {
     render() {
         return (
             <Layout>
-                <center>
-                    <Segment compact>
-                        <Header as="h2">
-                            <Icon.Group size="large">
-                                <Icon name="computer" />
-                            </Icon.Group>
-                            Developer Interface
-                        </Header>
-                    </Segment>
-                </center>
-                <Header as="h2">Dashboards</Header>
                 <Grid columns="equal" style={{ marginTop: "10px" }}>
+                    <Grid.Row>
+                        <Grid.Column width={5}>
+                            <Segment compact>
+                                <Header as="h2">
+                                    <Icon.Group>
+                                        <Icon name="computer" />
+                                    </Icon.Group>
+                                    Developer Interface
+                                </Header>
+                            </Segment>
+                        </Grid.Column>
+                        {/* <Grid.Column width={11}>
+                            <Segment>
+                                <Header as="h2">
+                                    <Icon.Group>
+                                        <Icon name="key" />
+                                    </Icon.Group>
+                                </Header>
+                            </Segment>
+                        </Grid.Column> */}
+                    </Grid.Row>
+                    <Header as="h2">Dashboards</Header>
                     <Grid.Row>
                         <Grid.Column>
                             <Link route="/certifier">

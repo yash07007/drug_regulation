@@ -5,67 +5,79 @@ contract QualityCertifier {
 
     struct Certificate {
         address producerAddress;
+        string producerName;
         string productName;
         string universalProductCode;
         string productDescription;
-        string requestStatus;
+        bool requestStatus;
         uint productionLimit;
     }
 
-    event returnCertificateNo(uint certificateNo);
-
+    uint private counter;
     address public manager;
     address[] public clients;
-    mapping(address => Certificate[]) public registry;
+    mapping(uint => Certificate) public certificates;
+    mapping(address => uint[]) public registry;
+    mapping(address => uint) public certificateCount;
 
     constructor() public {
         manager = msg.sender;
+    }
+
+    function getUniqueId() private returns(uint) {
+        return ++counter;
     }
 
     function getClients() public view returns(address[]) {
         return clients;
     }
 
-    function registerRequest(string productName, string universalProductCode, string productDescription) public payable {
+    function getRegistry(address manufacturerAddress) public view returns(uint[]) {
+        return registry[manufacturerAddress];
+    }
+
+    function registerRequest(string name, string productName, string universalProductCode, string productDescription) public payable {
         require(msg.value == 0.1 ether, "Payment of exactly 0.1 ether is needed to complete this transaction.");
         Certificate memory newCertificate = Certificate({
             producerAddress: msg.sender,
+            producerName: name,
             productName: productName,
             universalProductCode: universalProductCode,
             productDescription: productDescription,
-            requestStatus: "Pending",
+            requestStatus: false,
             productionLimit: 0
         });
 
-        registry[msg.sender].push(newCertificate);
+        uint id = getUniqueId();
+        registry[msg.sender].push(id);
+        certificates[id] = newCertificate;
+        certificateCount[msg.sender] += 1;
         clients.push(msg.sender);
-
-        emit returnCertificateNo(registry[msg.sender].length - 1);
     }
 
-    function processRequest(address producerAddress, uint certificateNo, string requestStatus, uint productionLimit) public {
+    function processRequest(uint certificateId, bool requestStatus, uint productionLimit) public {
         require(msg.sender == manager, "Function only accessible to creator of this contract.");
-        registry[producerAddress][certificateNo].requestStatus = requestStatus;
-        registry[producerAddress][certificateNo].productionLimit = productionLimit;
+        certificates[certificateId].requestStatus = requestStatus;
+        certificates[certificateId].productionLimit = productionLimit;
     }
 
     function verifyRequest(address producerAddress, string universalProductCode) public view returns(uint) {
 
         bool certificatePresence = false;
-        uint certificateNo;
-        Certificate[] memory certificates;
+        uint certificateId;
+        uint[] memory certificateIds;
 
-        certificates = registry[producerAddress];
-        for(uint i = 0; i < certificates.length; i++) {
+        certificateIds = registry[producerAddress];
+        for(uint i = 0; i < certificateIds.length; i++) {
             if(keccak256(abi.encodePacked(certificates[i].universalProductCode)) == keccak256(abi.encodePacked(universalProductCode))) {
                certificatePresence = true;
-               certificateNo = i;
+               certificateId = i;
                break;
             }
         }
 
-        if(certificatePresence) {
-            return registry[producerAddress][certificateNo].productionLimit;
+        if(certificatePresence && certificates[certificateId].requestStatus) {
+            return certificates[certificateId].productionLimit;
         } else {
             return 0;
         }
