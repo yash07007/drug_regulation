@@ -9,7 +9,7 @@ contract QualityCertifier {
         string productName;
         string universalProductCode;
         string productDescription;
-        bool requestStatus;
+        string requestStatus;
         uint productionLimit;
     }
 
@@ -28,6 +28,10 @@ contract QualityCertifier {
         return ++counter;
     }
 
+    function encode(string Str) private pure returns(bytes32) {
+        return keccak256(abi.encodePacked(Str));
+    }
+
     function getClients() public view returns(address[]) {
         return clients;
     }
@@ -44,7 +48,7 @@ contract QualityCertifier {
             productName: productName,
             universalProductCode: universalProductCode,
             productDescription: productDescription,
-            requestStatus: false,
+            requestStatus: "Pending",
             productionLimit: 0
         });
 
@@ -55,7 +59,7 @@ contract QualityCertifier {
         clients.push(msg.sender);
     }
 
-    function processRequest(uint certificateId, bool requestStatus, uint productionLimit) public {
+    function processRequest(uint certificateId, string requestStatus, uint productionLimit) public {
         require(msg.sender == manager, "Function only accessible to creator of this contract.");
         certificates[certificateId].requestStatus = requestStatus;
         certificates[certificateId].productionLimit = productionLimit;
@@ -69,14 +73,14 @@ contract QualityCertifier {
 
         certificateIds = registry[producerAddress];
         for(uint i = 0; i < certificateIds.length; i++) {
-            if(keccak256(abi.encodePacked(certificates[i].universalProductCode)) == keccak256(abi.encodePacked(universalProductCode))) {
+            if(encode(certificates[i].universalProductCode) == encode(universalProductCode)) {
                certificatePresence = true;
                certificateId = i;
                break;
             }
         }
 
-        if(certificatePresence && certificates[certificateId].requestStatus) {
+        if(certificatePresence && encode(certificates[certificateId].requestStatus) == encode("Accepted")) {
             return certificates[certificateId].productionLimit;
         } else {
             return 0;
