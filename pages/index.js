@@ -68,7 +68,7 @@ class Index extends Component {
                             </Link>
                         </Grid.Column>
                         <Grid.Column>
-                            <Link route="/">
+                            <Link route="/manufacturer">
                                 <a>
                                     <Segment
                                         inverted

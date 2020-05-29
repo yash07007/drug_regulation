@@ -8,17 +8,17 @@ contract QualityCertifier {
 
 contract ContractFactory {
 
-    struct Request {
-        string productName;
-        string universalProductCode;
-        string productDescription;
-        uint perBatchQuantity;
-        uint totalBatches;
-        string[] batchIds;
-        bool certificationStatus;
-        string requestStatus;
-        uint pricePerBatch;
-    }
+    // struct Request {
+    //     string productName;
+    //     string universalProductCode;
+    //     string productDescription;
+    //     uint perBatchQuantity;
+    //     uint totalBatches;
+    //     string[] batchIds;
+    //     bool certificationStatus;
+    //     string requestStatus;
+    //     uint pricePerBatch;
+    // }
 
     struct Actor {
         string name;
@@ -31,8 +31,8 @@ contract ContractFactory {
 
     address public committeeAddress;
     address public certifierAddress;
-    address[] public deployedContracts;
-    mapping(address => Request[]) public requestLog;
+    mapping(address => address[]) private deployedContracts;
+    // mapping(address => Request[]) public requestLog;
     mapping(address => Actor) public actors;
     QualityCertifier certifierInstance;
 
@@ -40,6 +40,10 @@ contract ContractFactory {
         committeeAddress = msg.sender;
         certifierAddress = _certifierAddress;
         certifierInstance = QualityCertifier(_certifierAddress);
+    }
+
+    function getDeployedContracts(address producerAddress) public view returns(address[]) {
+        return deployedContracts[producerAddress];
     }
 
     function getProductionLimit(address producerAddress, string universalProductCode) public view returns(uint) {
@@ -95,18 +99,18 @@ contract ContractFactory {
         productionLimit = productionLimit - requestedQuantity;
         actors[producerAddress].productionLimits[universalProductCode] = productionLimit;
 
-        Request memory newRequest = Request({
-            productName: productName,
-            universalProductCode: universalProductCode,
-            productDescription: productDescription,
-            perBatchQuantity: perBatchQuantity,
-            totalBatches: totalBatches,
-            batchIds: batchIds,
-            certificationStatus: isCertified,
-            requestStatus: "Accepted",
-            pricePerBatch: pricePerBatch
-        });
-        requestLog[producerAddress].push(newRequest);
+        // Request memory newRequest = Request({
+        //     productName: productName,
+        //     universalProductCode: universalProductCode,
+        //     productDescription: productDescription,
+        //     perBatchQuantity: perBatchQuantity,
+        //     totalBatches: totalBatches,
+        //     batchIds: batchIds,
+        //     certificationStatus: isCertified,
+        //     requestStatus: "Accepted",
+        //     pricePerBatch: pricePerBatch
+        // });
+        // requestLog[producerAddress].push(newRequest);
 
         address newTrackAddress = new SupplyTrack(
             actors[producerAddress].name,
@@ -119,7 +123,7 @@ contract ContractFactory {
             pricePerBatch,
             batchIds
         );
-        deployedContracts.push(newTrackAddress);
+        deployedContracts[producerAddress].push(newTrackAddress);
 
     }
 }

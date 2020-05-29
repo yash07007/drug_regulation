@@ -66,16 +66,16 @@ contract SupplyTrack {
 
     uint private counter = 0;
     Product public product;
-    mapping(address => string[]) public inventory;
+    mapping(address => string[]) private inventory;
     mapping(address => Actor) public actors;
 
     mapping(uint => PruchaseRequest) public purchaseRequestLog;
-    mapping(address => uint[]) public recievedRequestIds;
-    mapping(address => uint[]) public sentRequestIds;
+    mapping(address => uint[]) private recievedRequestIds;
+    mapping(address => uint[]) private sentRequestIds;
 
     mapping(uint => Invoice) public invoiceLog;
-    mapping(address => uint[]) public sentInvoiceIds;
-    mapping(address => uint[]) public recievedInvoiceIds;
+    mapping(address => uint[]) private sentInvoiceIds;
+    mapping(address => uint[]) private recievedInvoiceIds;
 
     mapping(string => uint) productEndpoint;
     mapping(uint => Customer) public customerRegistry;
@@ -108,13 +108,32 @@ contract SupplyTrack {
 
     // Getter Methods
 
+    function getIds(string fun) public view returns(uint[]) {
+        if(encode("sentRequestIds") == encode(fun)) {
+            return sentRequestIds[msg.sender];
+        }
+        if(encode("recievedRequestIds") == encode(fun)) {
+            return recievedRequestIds[msg.sender];
+        }
+        if(encode("sentInvoiceIds") == encode(fun)) {
+            return sentInvoiceIds[msg.sender];
+        }
+        if(encode("recievedInvoiceIds") == encode(fun)) {
+            return recievedInvoiceIds[msg.sender];
+        }
+    }
+
+    function getInventory() public view returns(string[]) {
+        return inventory[msg.sender];
+    }
+
     function getProductEndpoint(string batchId) public view returns(uint){
         return productEndpoint[batchId];
     }
 
     // Contract Methods
 
-    function getUniqueId() public returns(uint) {
+    function getUniqueId() private returns(uint) {
         return ++counter;
     }
 

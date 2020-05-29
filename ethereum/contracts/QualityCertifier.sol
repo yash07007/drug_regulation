@@ -17,7 +17,7 @@ contract QualityCertifier {
     address public manager;
     address[] public clients;
     mapping(uint => Certificate) public certificates;
-    mapping(address => uint[]) public registry;
+    mapping(address => uint[]) private registry;
     mapping(address => uint) public certificateCount;
 
     constructor() public {
@@ -71,11 +71,11 @@ contract QualityCertifier {
         uint certificateId;
         uint[] memory certificateIds;
 
-        certificateIds = registry[producerAddress];
+        certificateIds = getRegistry(producerAddress);
         for(uint i = 0; i < certificateIds.length; i++) {
-            if(encode(certificates[i].universalProductCode) == encode(universalProductCode)) {
+            if(encode(certificates[certificateIds[i]].universalProductCode) == encode(universalProductCode)) {
                certificatePresence = true;
-               certificateId = i;
+               certificateId = certificateIds[i];
                break;
             }
         }
