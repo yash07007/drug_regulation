@@ -69,7 +69,6 @@ class ProductCertification extends Component {
             this.setState({ errorMessage: error.message });
         }
         this.setState({
-            name: "",
             productName: "",
             universalProductCode: "",
             productDescription: "",
@@ -90,16 +89,17 @@ class ProductCertification extends Component {
             loading,
             success,
         } = this.state;
+        const { color } = this.props;
         return (
-            <Tab.Pane style={{ borderColor: "red", borderRadius: "5px" }}>
+            <Tab.Pane style={{ borderColor: color, borderRadius: "5px" }}>
                 <Grid columns="equal">
                     <Grid.Row>
-                        <CertificateInventory />
+                        <CertificateInventory color={color} />
                         <Grid.Column>
                             <Segment
-                                style={{ borderColor: "red" }}
+                                style={{ borderColor: color }}
                                 inverted
-                                color="red"
+                                color={color}
                             >
                                 <Header as="h3">
                                     Request Product Certification

@@ -27,13 +27,14 @@ contract ContractFactory {
         bool presence;
     }
 
-    event actorDataUpdated(string _name, string _universalProductCode, bool _isCertified, uint _productionLimit);
+    // event actorDataUpdated(string _name, string _universalProductCode, bool _isCertified, uint _productionLimit);
 
     address public committeeAddress;
     address public certifierAddress;
     mapping(address => address[]) private deployedContracts;
     // mapping(address => Request[]) public requestLog;
     mapping(address => Actor) public actors;
+    address[] private clients;
     QualityCertifier certifierInstance;
 
     constructor(address _certifierAddress) public {
@@ -42,12 +43,15 @@ contract ContractFactory {
         certifierInstance = QualityCertifier(_certifierAddress);
     }
 
+    function getClients() public view returns(address[]) {
+        return clients;
+    }
+
     function getDeployedContracts(address producerAddress) public view returns(address[]) {
         return deployedContracts[producerAddress];
     }
 
     function getProductionLimit(address producerAddress, string universalProductCode) public view returns(uint) {
-        require(msg.sender == committeeAddress, "Function only accessible to creator of this contract.");
         return actors[producerAddress].productionLimits[universalProductCode];
     }
 
@@ -58,6 +62,7 @@ contract ContractFactory {
             presence: true
         });
         actors[id] = newActor;
+        clients.push(id);
     }
 
     function processesRequest(
@@ -83,12 +88,12 @@ contract ContractFactory {
                 isCertified = true;
                 actors[producerAddress].productionLimits[universalProductCode] = productionLimit;
                 actors[producerAddress].isCertified[universalProductCode] = isCertified;
-                emit actorDataUpdated(
-                    actors[producerAddress].name,
-                    universalProductCode,
-                    isCertified,
-                    productionLimit
-                );
+                // emit actorDataUpdated(
+                //     actors[producerAddress].name,
+                //     universalProductCode,
+                //     isCertified,
+                //     productionLimit
+                // );
             }
         }
 
@@ -124,6 +129,5 @@ contract ContractFactory {
             batchIds
         );
         deployedContracts[producerAddress].push(newTrackAddress);
-
     }
 }

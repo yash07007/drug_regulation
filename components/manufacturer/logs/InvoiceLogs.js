@@ -16,7 +16,6 @@ import {
 import factory from "../../../ethereum/factory";
 import web3 from "../../../ethereum/web3";
 import SupplyTrack from "../../../ethereum/supplyTrack";
-import { Router } from "../../../routes";
 
 class Logs extends Component {
     state = {
@@ -56,9 +55,35 @@ class Logs extends Component {
             loading: true,
         });
         const accounts = await web3.eth.getAccounts();
-        const contracts = await factory.methods
-            .getDeployedContracts(accounts[0])
-            .call();
+        let clients = await factory.methods.getClients().call();
+        clients = clients.filter((x, i, a) => a.indexOf(x) == i);
+        const isManufacturer = clients.indexOf(accounts[0]) >= 0 ? true : false;
+        let contracts = [];
+
+        if (isManufacturer) {
+            let localContracts = await factory.methods
+                .getDeployedContracts(accounts[0])
+                .call();
+            for (const contract of localContracts) {
+                contracts.push(contract);
+            }
+        } else {
+            for (const clientAddress of clients) {
+                let localContracts = await factory.methods
+                    .getDeployedContracts(clientAddress)
+                    .call();
+                for (const contractAddress of localContracts) {
+                    const supplyTrack = SupplyTrack(contractAddress);
+                    const actor = await supplyTrack.methods
+                        .actors(accounts[0])
+                        .call();
+
+                    if (actor.actorName) {
+                        contracts.push(contractAddress);
+                    }
+                }
+            }
+        }
 
         const type = this.props.type == "recieved" ? "recieved" : "sent";
         const typeOfObjectIds = type + "InvoiceIds";
@@ -176,7 +201,7 @@ class Logs extends Component {
                                     trigger={
                                         <Header as="h3">{productName}</Header>
                                     }
-                                    content="Universal Product Code"
+                                    content="Product Name"
                                     position="top center"
                                     inverted
                                 />
@@ -236,14 +261,14 @@ class Logs extends Component {
 
     render() {
         const { loading, processLoading, success, errorMessage } = this.state;
-        const { type } = this.props;
+        const { type, color } = this.props;
         return (
-            <Tab.Pane style={{ borderColor: "red", borderRadius: "3px" }}>
+            <Tab.Pane style={{ borderColor: color, borderRadius: "3px" }}>
                 <Visibility fireOnMount onOnScreen={this.loadLogs}>
                     <Segment
-                        style={{ borderColor: "red" }}
+                        style={{ borderColor: color }}
                         inverted
-                        color="red"
+                        color={color}
                     >
                         <Header as="h3">
                             {type[0].toUpperCase() + type.slice(1)} Invoices

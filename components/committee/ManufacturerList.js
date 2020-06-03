@@ -2,67 +2,53 @@ import React, { Component } from "react";
 import {
     Header,
     Segment,
+    Grid,
     Visibility,
     Placeholder,
-    Dimmer,
     Loader,
-    Grid,
-    Table,
+    Dimmer,
     Button,
     Message,
+    Table,
 } from "semantic-ui-react";
-import certifier from "../../../ethereum/certifier";
-import factory from "../../../ethereum/factory";
-import web3 from "../../../ethereum/web3";
+import factory from "../../ethereum/factory";
 
-class CertificateInventory extends Component {
+class ManufactuerList extends Component {
     state = {
-        loading: false,
-        certificates: {},
+        inventory: {},
+        loading: true,
     };
 
-    loadCertificates = async () => {
+    loadList = async () => {
         this.setState({
             loading: true,
         });
-        const accounts = await web3.eth.getAccounts();
-        const certificatesIds = await certifier.methods
-            .getRegistry(accounts[0])
-            .call();
 
-        let certificates = {};
-        for (const id of certificatesIds) {
-            const certificate = await certifier.methods.certificates(id).call();
-            const productionLimitLeft = await factory.methods
-                .getProductionLimit(
-                    accounts[0],
-                    certificate.universalProductCode
-                )
-                .call();
-            certificate.productionLimitLeft = productionLimitLeft;
-            certificates[id] = certificate;
+        let clients = await factory.methods.getClients().call();
+        clients = clients.filter((x, i, a) => a.indexOf(x) == i);
+        let actors = {};
+        for (const client of clients) {
+            const actor = await factory.methods.actors(client).call();
+            actors[client] = actor;
         }
 
         this.setState({
-            certificates: certificates,
+            actors: actors,
             loading: false,
         });
     };
 
-    renderCertificates() {
+    renderList() {
         const { Row, Cell, HeaderCell, Header, Body } = Table;
-        const { certificates } = this.state;
+        const { actors } = this.state;
         let renderedRows = [];
-        for (const id in certificates) {
-            let certificate = certificates[id];
+        for (const actorAddress in actors) {
+            const actor = actors[actorAddress];
+
             renderedRows.push(
                 <Row>
-                    <Cell>{id}</Cell>
-                    <Cell>{certificate.productName}</Cell>
-                    <Cell>{certificate.universalProductCode}</Cell>
-                    <Cell>{certificate.requestStatus}</Cell>
-                    <Cell>{certificate.productionLimit}</Cell>
-                    <Cell>{certificate.productionLimitLeft}</Cell>
+                    <Cell>{actorAddress}</Cell>
+                    <Cell>{actor.name}</Cell>
                 </Row>
             );
         }
@@ -73,15 +59,11 @@ class CertificateInventory extends Component {
                 </Message.Header>
             </Message>
         ) : (
-            <Table celled inverted striped>
+            <Table celled inverted striped textAlign="center">
                 <Header>
                     <Row>
-                        <HeaderCell>Id</HeaderCell>
-                        <HeaderCell>Name</HeaderCell>
-                        <HeaderCell>UPC</HeaderCell>
-                        <HeaderCell>Req. Status</HeaderCell>
-                        <HeaderCell>Prod. Limit</HeaderCell>
-                        <HeaderCell>Prod. Limit Left</HeaderCell>
+                        <HeaderCell>Actor Address</HeaderCell>
+                        <HeaderCell>Actor Name</HeaderCell>
                     </Row>
                 </Header>
                 <Body>{renderedRows}</Body>
@@ -95,13 +77,13 @@ class CertificateInventory extends Component {
         const { color } = this.props;
         return (
             <Grid.Column>
-                <Visibility fireOnMount onOnScreen={this.loadCertificates}>
+                <Visibility fireOnMount onOnScreen={this.loadList}>
                     <Segment
                         style={{ borderColor: color }}
                         inverted
                         color={color}
                     >
-                        <Header as="h3">Certificate Inventory</Header>
+                        <Header as="h3">Resgistered Manufacturers</Header>
                     </Segment>
                     <Segment style={{ overflow: "auto", maxHeight: 370 }}>
                         <Dimmer active={loading} inverted>
@@ -137,14 +119,10 @@ class CertificateInventory extends Component {
                             </Placeholder>
                         ) : (
                             <div>
-                                <Button
-                                    secondary
-                                    fluid
-                                    onClick={this.loadCertificates}
-                                >
+                                <Button fluid onClick={this.loadList}>
                                     Refresh
                                 </Button>
-                                {this.renderCertificates()}
+                                {this.renderList()}
                             </div>
                         )}
                     </Segment>
@@ -154,4 +132,4 @@ class CertificateInventory extends Component {
     }
 }
 
-export default CertificateInventory;
+export default ManufactuerList;

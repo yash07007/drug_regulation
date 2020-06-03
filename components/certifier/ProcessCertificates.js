@@ -26,7 +26,6 @@ class ProcessCertificates extends Component {
         loading: false,
         processLoading: false,
         success: false,
-        modalOpen: false,
         certificates: {},
     };
 
@@ -35,7 +34,6 @@ class ProcessCertificates extends Component {
         this.setState({
             processLoading: true,
             errorMessage: "",
-            modalOpen: false,
         });
         try {
             const accounts = await web3.eth.getAccounts();
@@ -60,7 +58,6 @@ class ProcessCertificates extends Component {
         this.setState({
             processLoading: true,
             errorMessage: "",
-            modalOpen: false,
         });
         try {
             const accounts = await web3.eth.getAccounts();
@@ -104,7 +101,7 @@ class ProcessCertificates extends Component {
 
     renderCertificates() {
         const { Row, Cell, HeaderCell, Body } = Table;
-        const { loading, modalOpen, certificates, processLoading } = this.state;
+        const { loading, certificates, processLoading } = this.state;
         let renderedRows = [];
         for (const id in certificates) {
             let {
@@ -138,26 +135,19 @@ class ProcessCertificates extends Component {
                     <Cell>{requestStatus}</Cell>
                     <Cell>{productionLimit}</Cell>
                     <Cell>
-                        <Button
-                            positive
-                            loading={loading}
-                            disabled={
-                                requestStatus != "Pending" || processLoading
-                            }
-                            onClick={(event) =>
-                                this.setState({ modalOpen: true })
-                            }
-                        >
-                            Approve
-                        </Button>
                         <Modal
                             as={Form}
-                            open={modalOpen}
-                            onClose={(event) =>
-                                this.setState({
-                                    modalOpen: false,
-                                    errorMessage: "",
-                                })
+                            trigger={
+                                <Button
+                                    positive
+                                    loading={loading}
+                                    disabled={
+                                        requestStatus != "Pending" ||
+                                        processLoading
+                                    }
+                                >
+                                    Approve
+                                </Button>
                             }
                             closeIcon
                             onSubmit={this.onApprove.bind(this, id)}

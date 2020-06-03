@@ -1,6 +1,6 @@
 const address = {
-    certifier: "0xBDB5494Dc04C772e44b5389eae1530bFA552A146",
-    factory: "0xd1F18a800aEb0eB2df899336eD66E1A79f83c138",
+    certifier: "0x52A711a34Bedfc99B23A267Efe934967941dec9f",
+    factory: "0x5d96867b08a63A8816b1A8CF7276728FBb85b123",
 };
 
-module.exports = address;
+export default address;

@@ -1,13 +1,10 @@
 import React, { Component } from "react";
-// import factory from "../ethereum/factory";
 import { Segment, Header, Grid, Icon, GridColumn } from "semantic-ui-react";
 import Layout from "../components/Layout";
 import { Link } from "../routes";
 import address from "../addresses";
 
 class Index extends Component {
-    // static async getInitialProps() {}
-
     render() {
         return (
             <Layout>
@@ -52,7 +49,7 @@ class Index extends Component {
                             </Link>
                         </Grid.Column>
                         <Grid.Column>
-                            <Link route="/">
+                            <Link route="/committee">
                                 <a>
                                     <Segment
                                         inverted
@@ -86,11 +83,11 @@ class Index extends Component {
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            <Link route="/">
+                            <Link route="/wholesaler">
                                 <a>
                                     <Segment
                                         inverted
-                                        color="brown"
+                                        color="green"
                                         textAlign="center"
                                     >
                                         <Header as="h2" icon>

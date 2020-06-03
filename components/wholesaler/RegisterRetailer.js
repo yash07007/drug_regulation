@@ -14,7 +14,7 @@ import {
 import factory from "../../ethereum/factory";
 import SupplyTrack from "../../ethereum/supplyTrack";
 import web3 from "../../ethereum/web3";
-import Inventory from "./inventory/Inventory";
+import Inventory from "../manufacturer/inventory/Inventory";
 
 class RegisterWholesaler extends Component {
     state = {
@@ -35,7 +35,7 @@ class RegisterWholesaler extends Component {
         try {
             const accounts = await web3.eth.getAccounts();
             await supplyTrack.methods
-                .registerWholesaler(walletAddress, name)
+                .registerRetailer(walletAddress, name)
                 .send({
                     from: accounts[0],
                 });
@@ -56,9 +56,25 @@ class RegisterWholesaler extends Component {
 
     loadContractAddresses = async () => {
         const accounts = await web3.eth.getAccounts();
-        const contracts = await factory.methods
-            .getDeployedContracts(accounts[0])
-            .call();
+        let clients = await factory.methods.getClients().call();
+        clients = clients.filter((x, i, a) => a.indexOf(x) == i);
+        let contracts = [];
+        for (const clientAddress of clients) {
+            let localContracts = await factory.methods
+                .getDeployedContracts(clientAddress)
+                .call();
+            for (const contractAddress of localContracts) {
+                const supplyTrack = SupplyTrack(contractAddress);
+                const actor = await supplyTrack.methods
+                    .actors(accounts[0])
+                    .call();
+
+                if (actor.actorName) {
+                    contracts.push(contractAddress);
+                }
+            }
+        }
+
         const contractOptions = [];
         for (const contract of contracts) {
             contractOptions.push({
@@ -94,7 +110,7 @@ class RegisterWholesaler extends Component {
                                 inverted
                                 color={color}
                             >
-                                <Header as="h3">Register Wholesaler</Header>
+                                <Header as="h3">Register Retailer</Header>
                             </Segment>
                             <Message icon hidden={!loading} info>
                                 <Icon name="circle notched" loading />

@@ -107,7 +107,7 @@ class BatchRegistration extends Component {
                 renderedLabels.push(<Divider />);
             }
             renderedLabels.push(
-                <Label color="red">{this.state.batchIds[i]}</Label>
+                <Label color={this.props.color}>{this.state.batchIds[i]}</Label>
             );
         }
         return renderedLabels;
@@ -125,16 +125,17 @@ class BatchRegistration extends Component {
             loading,
             success,
         } = this.state;
+        const { color } = this.props;
         return (
-            <Tab.Pane style={{ borderColor: "red", borderRadius: "5px" }}>
+            <Tab.Pane style={{ borderColor: color, borderRadius: "5px" }}>
                 <Grid columns="equal">
                     <Grid.Row>
-                        <Inventory head={this.state.inventoyHead} />
+                        <Inventory head="Inventory" color={color} />
                         <Grid.Column>
                             <Segment
-                                style={{ borderColor: "red" }}
+                                style={{ borderColor: color }}
                                 inverted
-                                color="red"
+                                color={color}
                             >
                                 <Header as="h3">Register New Batch</Header>
                             </Segment>
@@ -241,7 +242,10 @@ class BatchRegistration extends Component {
                                         />
                                     </Form.Group>
                                     <Segment>
-                                        <Label color="red" attached="top left">
+                                        <Label
+                                            color={color}
+                                            attached="top left"
+                                        >
                                             BatchIds
                                         </Label>
                                         {this.renderLabels()}

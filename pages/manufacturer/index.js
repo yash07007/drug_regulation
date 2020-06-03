@@ -28,23 +28,23 @@ class CertificateInventory extends Component {
         const panes = [
             {
                 menuItem: "Batch Registration",
-                render: () => <BatchRegistration />,
+                render: () => <BatchRegistration color="red" />,
             },
             {
                 menuItem: "Register Wholesaler",
-                render: () => <RegisterWholesaler />,
+                render: () => <RegisterWholesaler color="red" />,
             },
             {
                 menuItem: "Product Certification",
-                render: () => <ProductCertification />,
+                render: () => <ProductCertification color="red" />,
             },
             {
                 menuItem: "Purchase Requests",
-                render: () => <RequestLogs type="recieved" />,
+                render: () => <RequestLogs type="recieved" color="red" />,
             },
             {
                 menuItem: "Invoices",
-                render: () => <InvoiceLogs type="sent" />,
+                render: () => <InvoiceLogs type="sent" color="red" />,
             },
         ];
         return (
