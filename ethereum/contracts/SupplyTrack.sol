@@ -67,6 +67,8 @@ contract SupplyTrack {
     uint private counter = 0;
     Product public product;
     mapping(address => string[]) private inventory;
+    address[] private wholesalers;
+    address[] private retailers;
     mapping(address => Actor) public actors;
 
     mapping(uint => PruchaseRequest) public purchaseRequestLog;
@@ -123,12 +125,21 @@ contract SupplyTrack {
         }
     }
 
-    function getInventory() public view returns(string[]) {
-        return inventory[msg.sender];
+    function getInventory(address _address) public view returns(string[]) {
+        return inventory[_address];
     }
 
     function getProductEndpoint(string batchId) public view returns(uint){
         return productEndpoint[batchId];
+    }
+
+    function getActors(string actorType) public view returns(address[]){
+        if(encode("wholesalers") == encode(actorType)) {
+            return wholesalers;
+        }
+        if(encode("retailers") == encode(actorType)) {
+            return retailers;
+        }
     }
 
     // Contract Methods
@@ -149,6 +160,7 @@ contract SupplyTrack {
             actorType:"Wholesaler"
         });
         actors[wholesalerAddress] = newActor;
+        wholesalers.push(wholesalerAddress);
     }
 
     function registerRetailer(address retailerAddress, string retailerName) public restricted([2, 0]) {
@@ -157,6 +169,7 @@ contract SupplyTrack {
             actorType:"Retailer"
         });
         actors[retailerAddress] = newActor;
+        retailers.push(retailerAddress);
     }
 
     function requestToBuy(string universalProductCode, uint batchQuantity, address sellerAddress) public restricted([2, 3]) {

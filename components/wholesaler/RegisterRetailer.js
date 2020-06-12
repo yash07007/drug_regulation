@@ -14,31 +14,34 @@ import {
 import factory from "../../ethereum/factory";
 import SupplyTrack from "../../ethereum/supplyTrack";
 import web3 from "../../ethereum/web3";
-import Inventory from "../manufacturer/inventory/Inventory";
+import ActorList from "../committee/ActorList";
 
-class RegisterWholesaler extends Component {
+class RegisterRetailer extends Component {
     state = {
         errorMessage: "",
         loading: false,
+        processLoading: false,
         name: "",
         walletAddress: "",
-        contractAddress: "",
+        // contractAddresses: "",
         contractOptions: [],
         success: false,
     };
 
     onSubmit = async (event) => {
         event.preventDefault();
-        const { name, walletAddress, contractAddress } = this.state;
-        const supplyTrack = SupplyTrack(contractAddress);
-        this.setState({ loading: true, errorMessage: "" });
+        const { name, walletAddress, value } = this.state;
+        this.setState({ processLoading: true, errorMessage: "" });
         try {
             const accounts = await web3.eth.getAccounts();
-            await supplyTrack.methods
-                .registerRetailer(walletAddress, name)
-                .send({
-                    from: accounts[0],
-                });
+            for (const contractAddress of value) {
+                const supplyTrack = SupplyTrack(contractAddress);
+                await supplyTrack.methods
+                    .registerRetailer(walletAddress, name)
+                    .send({
+                        from: accounts[0],
+                    });
+            }
             this.setState({ success: true });
         } catch (error) {
             this.setState({ errorMessage: error.message });
@@ -46,19 +49,25 @@ class RegisterWholesaler extends Component {
         this.setState({
             name: "",
             walletAddress: "",
-            contractAddress: "",
-            loading: false,
+            // contractAddresses: "",
+            processLoading: false,
         });
         setTimeout(() => {
             this.setState({ success: false });
         }, 4000);
     };
 
+    handleDropdownChange = (e, { value }) => this.setState({ value });
+
     loadContractAddresses = async () => {
+        this.setState({
+            loading: true,
+        });
         const accounts = await web3.eth.getAccounts();
         let clients = await factory.methods.getClients().call();
         clients = clients.filter((x, i, a) => a.indexOf(x) == i);
         let contracts = [];
+
         for (const clientAddress of clients) {
             let localContracts = await factory.methods
                 .getDeployedContracts(clientAddress)
@@ -85,6 +94,7 @@ class RegisterWholesaler extends Component {
         }
         this.setState({
             contractOptions: contractOptions,
+            loading: false,
         });
     };
 
@@ -92,9 +102,10 @@ class RegisterWholesaler extends Component {
         const {
             name,
             walletAddress,
-            contractAddress,
+            value,
             contractOptions,
             loading,
+            processLoading,
             success,
             errorMessage,
         } = this.state;
@@ -103,7 +114,7 @@ class RegisterWholesaler extends Component {
             <Tab.Pane style={{ borderColor: color, borderRadius: "5px" }}>
                 <Grid columns="equal">
                     <Grid.Row>
-                        <Inventory head="Contracts Summary" color={color} />
+                        <ActorList color={color} head="Registered Retailers" />
                         <Grid.Column>
                             <Segment
                                 style={{ borderColor: color }}
@@ -112,13 +123,13 @@ class RegisterWholesaler extends Component {
                             >
                                 <Header as="h3">Register Retailer</Header>
                             </Segment>
-                            <Message icon hidden={!loading} info>
+                            <Message icon hidden={!processLoading} info>
                                 <Icon name="circle notched" loading />
                                 <Message.Content>
                                     <Message.Header>
                                         Just a moment
                                     </Message.Header>
-                                    We are registering new Wholesaler to
+                                    We are registering new Retailer to
                                     Blockchain.
                                 </Message.Content>
                             </Message>
@@ -126,7 +137,7 @@ class RegisterWholesaler extends Component {
                                 <Icon name="check square outline" />
                                 <Message.Content>
                                     <Message.Header>Success</Message.Header>
-                                    New Wholesaler is sucessfully registered
+                                    New Retailer is sucessfully registered
                                 </Message.Content>
                             </Message>
                             <Visibility
@@ -137,7 +148,7 @@ class RegisterWholesaler extends Component {
                                     <Form
                                         onSubmit={this.onSubmit}
                                         error={!!errorMessage}
-                                        loading={loading}
+                                        loading={processLoading}
                                     >
                                         <Message
                                             error
@@ -171,16 +182,13 @@ class RegisterWholesaler extends Component {
                                             label="Contract"
                                             control={Dropdown}
                                             fluid
+                                            multiple
+                                            onChange={this.handleDropdownChange}
                                             selection
                                             clearable
                                             options={contractOptions}
                                             placeholder="Select Contract"
-                                            value={contractAddress}
-                                            onChange={(e, { value }) =>
-                                                this.setState({
-                                                    contractAddress: value,
-                                                })
-                                            }
+                                            value={value}
                                         />
                                         <Button type="submit" fluid primary>
                                             Submit
@@ -196,4 +204,4 @@ class RegisterWholesaler extends Component {
     }
 }
 
-export default RegisterWholesaler;
+export default RegisterRetailer;

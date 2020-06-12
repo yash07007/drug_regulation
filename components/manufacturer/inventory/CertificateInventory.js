@@ -62,7 +62,7 @@ class CertificateInventory extends Component {
                     <Cell>{certificate.universalProductCode}</Cell>
                     <Cell>{certificate.requestStatus}</Cell>
                     <Cell>{certificate.productionLimit}</Cell>
-                    <Cell>{certificate.productionLimitLeft}</Cell>
+                    {/* <Cell>{certificate.productionLimitLeft}</Cell> */}
                 </Row>
             );
         }
@@ -81,7 +81,7 @@ class CertificateInventory extends Component {
                         <HeaderCell>UPC</HeaderCell>
                         <HeaderCell>Req. Status</HeaderCell>
                         <HeaderCell>Prod. Limit</HeaderCell>
-                        <HeaderCell>Prod. Limit Left</HeaderCell>
+                        {/* <HeaderCell>Prod. Limit Left</HeaderCell> */}
                     </Row>
                 </Header>
                 <Body>{renderedRows}</Body>
@@ -108,7 +108,7 @@ class CertificateInventory extends Component {
                             <Loader size="large">Loading</Loader>
                         </Dimmer>
                         {loading ? (
-                            <Placeholder>
+                            <Placeholder fluid>
                                 <Placeholder.Paragraph>
                                     <Placeholder.Line />
                                     <Placeholder.Line />

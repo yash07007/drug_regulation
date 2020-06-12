@@ -91,14 +91,40 @@ class Catalouge extends Component {
                     .call();
 
                 if (actor.actorName) {
-                    const product = await supplyTrack.methods.product().call();
-                    const producer = await factory.methods
-                        .actors(clientAddress)
-                        .call();
-                    product.producerName = producer.name;
-                    product.producerAddress = clientAddress;
-                    product.contractAddress = contractAddress;
-                    cards.push(product);
+                    if (actor.actorType == "Wholesaler") {
+                        const product = await supplyTrack.methods
+                            .product()
+                            .call();
+                        const producer = await factory.methods
+                            .actors(clientAddress)
+                            .call();
+                        product.sellerName = producer.name;
+                        product.sellerAddress = clientAddress;
+                        product.contractAddress = contractAddress;
+                        cards.push(product);
+                    } else if (actor.actorType == "Retailer") {
+                        const product = await supplyTrack.methods
+                            .product()
+                            .call();
+                        const wholesalers = await supplyTrack.methods
+                            .getActors("wholesalers")
+                            .call();
+                        for (const wholesalerAddress of wholesalers) {
+                            const inventory = await supplyTrack.methods
+                                .getInventory(wholesalerAddress)
+                                .call();
+                            if (inventory.length > 0) {
+                                const wholesaler = await supplyTrack.methods
+                                    .actors(wholesalerAddress)
+                                    .call();
+                                product.sellerName = wholesaler.actorName;
+                                product.sellerAddress = wholesalerAddress;
+                                product.contractAddress = contractAddress;
+                                product.totalBatches = inventory.length;
+                                cards.push(product);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -115,8 +141,8 @@ class Catalouge extends Component {
                 perBatchQuantity,
                 totalBatches,
                 pricePerBatch,
-                producerName,
-                producerAddress,
+                sellerName,
+                sellerAddress,
                 contractAddress,
             } = card;
             renderedCards.push(
@@ -170,7 +196,7 @@ class Catalouge extends Component {
                                             }
                                             trigger={
                                                 <span>
-                                                    {"Sold by " + producerName}
+                                                    {"Sold by " + sellerName}
                                                 </span>
                                             }
                                             size="small"
@@ -200,7 +226,7 @@ class Catalouge extends Component {
                                 this,
                                 universalProductCode,
                                 batchQuantity,
-                                producerAddress,
+                                sellerAddress,
                                 contractAddress
                             )}
                         >

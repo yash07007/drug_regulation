@@ -133,9 +133,9 @@ class Logs extends Component {
                 } = object;
                 renderedRows.push(
                     <Row
-                        disabled={status != "Pending"}
-                        positive={status == "Accepted"}
-                        negative={status == "Rejected"}
+                        // disabled={status != "Pending"}
+                        positive={status == "Paid"}
+                        // negative={status == "Rejected"}
                     >
                         <Cell>{invoiceId}</Cell>
                         <Cell>
@@ -175,87 +175,84 @@ class Logs extends Component {
                     </Row>
                 );
             }
-            const hideTable = renderedRows.length == 0 ? true : false;
-            renderedTables.push(
-                <Table
-                    striped
-                    selectable
-                    celled
-                    textAlign="center"
-                    hidden={hideTable}
-                >
-                    <Header>
-                        <Row>
-                            <HeaderCell colSpan="3">
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">{contract}</Header>
-                                    }
-                                    content="Contract Addresss"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                            <HeaderCell>
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">{productName}</Header>
-                                    }
-                                    content="Product Name"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                            <HeaderCell>
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">
-                                            {universalProductCode}
-                                        </Header>
-                                    }
-                                    content="Universal Product Code"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                            <HeaderCell colSpan="2">
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">
-                                            {totalBatches} Left
-                                        </Header>
-                                    }
-                                    content="Quantity Left"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                        </Row>
-                        <Row>
-                            <HeaderCell>Invoice Id</HeaderCell>
-                            <HeaderCell>Benificairy Address</HeaderCell>
-                            <HeaderCell>Benificairy Name</HeaderCell>
-                            <HeaderCell>Total Batchs</HeaderCell>
-                            <HeaderCell>Total Price</HeaderCell>
-                            <HeaderCell>Invoice Status</HeaderCell>
-                            {type == "recieved" && <HeaderCell>Pay</HeaderCell>}
-                        </Row>
-                    </Header>
-                    <Body>{renderedRows}</Body>
-                </Table>
-            );
-        }
 
-        if (renderedTables.length == 0) {
-            renderedTables.push(
-                <Message>
-                    <Message.Header>
-                        You do not have unprocessed Invoices.
-                    </Message.Header>
-                </Message>
-            );
+            if (renderedRows.length == 0) {
+                renderedTables.push(
+                    <Message>
+                        <Message.Header>
+                            You do not have unprocessed Invoices.
+                        </Message.Header>
+                    </Message>
+                );
+            } else {
+                renderedTables.push(
+                    <Table striped selectable celled textAlign="center">
+                        <Header>
+                            <Row>
+                                <HeaderCell colSpan="3">
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">{contract}</Header>
+                                        }
+                                        content="Contract Addresss"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                                <HeaderCell>
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">
+                                                {productName}
+                                            </Header>
+                                        }
+                                        content="Product Name"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                                <HeaderCell>
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">
+                                                {universalProductCode}
+                                            </Header>
+                                        }
+                                        content="Universal Product Code"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                                <HeaderCell colSpan="2">
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">
+                                                {totalBatches} Left
+                                            </Header>
+                                        }
+                                        content="Quantity Left"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                            </Row>
+                            <Row>
+                                <HeaderCell>Invoice Id</HeaderCell>
+                                <HeaderCell>Benificairy Address</HeaderCell>
+                                <HeaderCell>Benificairy Name</HeaderCell>
+                                <HeaderCell>Total Batchs</HeaderCell>
+                                <HeaderCell>Total Price</HeaderCell>
+                                <HeaderCell>Invoice Status</HeaderCell>
+                                {type == "recieved" && (
+                                    <HeaderCell>Pay</HeaderCell>
+                                )}
+                            </Row>
+                        </Header>
+                        <Body>{renderedRows}</Body>
+                    </Table>
+                );
+            }
         }
-
         return renderedTables;
     }
 

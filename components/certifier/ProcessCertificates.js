@@ -115,7 +115,6 @@ class ProcessCertificates extends Component {
             } = certificates[id];
             renderedRows.push(
                 <Row
-                    disabled={requestStatus != "Pending"}
                     positive={requestStatus == "Accepted"}
                     negative={requestStatus == "Rejected"}
                 >
@@ -165,6 +164,7 @@ class ProcessCertificates extends Component {
                                     <Input
                                         label="items"
                                         labelPosition="right"
+                                        type="number"
                                         value={this.state.productionLimit}
                                         onChange={(event) =>
                                             this.setState({
@@ -179,7 +179,8 @@ class ProcessCertificates extends Component {
                                 <Button
                                     type="submit"
                                     positive
-                                    loading={loading}
+                                    loading={processLoading}
+                                    disabled={processLoading}
                                 >
                                     <Icon name="checkmark" /> Submit
                                 </Button>
@@ -201,25 +202,35 @@ class ProcessCertificates extends Component {
                 </Row>
             );
         }
-        return (
-            <Table striped selectable celled textAlign="center">
-                <Table.Header>
-                    <Row>
-                        <HeaderCell>Cert. Id</HeaderCell>
-                        <HeaderCell>Producer Addr.</HeaderCell>
-                        <HeaderCell>Producer Name</HeaderCell>
-                        <HeaderCell>Product Name</HeaderCell>
-                        <HeaderCell>UPC</HeaderCell>
-                        <HeaderCell>Product Desc.</HeaderCell>
-                        <HeaderCell>Req. Status</HeaderCell>
-                        <HeaderCell>Production Limit</HeaderCell>
-                        <HeaderCell>Approve</HeaderCell>
-                        <HeaderCell>Reject</HeaderCell>
-                    </Row>
-                </Table.Header>
-                <Body>{renderedRows}</Body>
-            </Table>
-        );
+        if (renderedRows.length == 0) {
+            return (
+                <Message>
+                    <Message.Header>
+                        You dont have any certificate verification requests.
+                    </Message.Header>
+                </Message>
+            );
+        } else {
+            return (
+                <Table striped selectable celled textAlign="center">
+                    <Table.Header>
+                        <Row>
+                            <HeaderCell>Cert. Id</HeaderCell>
+                            <HeaderCell>Producer Addr.</HeaderCell>
+                            <HeaderCell>Producer Name</HeaderCell>
+                            <HeaderCell>Product Name</HeaderCell>
+                            <HeaderCell>UPC</HeaderCell>
+                            <HeaderCell>Product Desc.</HeaderCell>
+                            <HeaderCell>Req. Status</HeaderCell>
+                            <HeaderCell>Production Limit</HeaderCell>
+                            <HeaderCell>Approve</HeaderCell>
+                            <HeaderCell>Reject</HeaderCell>
+                        </Row>
+                    </Table.Header>
+                    <Body>{renderedRows}</Body>
+                </Table>
+            );
+        }
     }
 
     render() {

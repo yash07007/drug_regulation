@@ -135,7 +135,6 @@ class RequestLogs extends Component {
                 } = object;
                 renderedRows.push(
                     <Row
-                        disabled={status != "Pending"}
                         positive={status == "Accepted"}
                         negative={status == "Rejected"}
                     >
@@ -196,89 +195,89 @@ class RequestLogs extends Component {
                     </Row>
                 );
             }
-            const hideTable = renderedRows.length == 0 ? true : false;
-            renderedTables.push(
-                <Table
-                    striped
-                    selectable
-                    celled
-                    textAlign="center"
-                    hidden={hideTable}
-                >
-                    <Header>
-                        <Row>
-                            <HeaderCell colSpan={type == "recieved" ? 3 : 2}>
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">{contract}</Header>
-                                    }
-                                    content="Contract Addresss"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                            <HeaderCell>
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">{productName}</Header>
-                                    }
-                                    content="Product Name"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                            <HeaderCell>
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">
-                                            {universalProductCode}
-                                        </Header>
-                                    }
-                                    content="Universal Product Code"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                            <HeaderCell colSpan={type == "recieved" ? 2 : 1}>
-                                <Popup
-                                    trigger={
-                                        <Header as="h3">
-                                            {totalBatches} Left
-                                        </Header>
-                                    }
-                                    content="Quantity Left"
-                                    position="top center"
-                                    inverted
-                                />
-                            </HeaderCell>
-                        </Row>
-                        <Row>
-                            <HeaderCell>Request Id</HeaderCell>
-                            <HeaderCell>Sender Address</HeaderCell>
-                            <HeaderCell>Sender Name</HeaderCell>
-                            <HeaderCell>Batch Quantity</HeaderCell>
-                            <HeaderCell>Request Status</HeaderCell>
-                            {type == "recieved" && (
-                                <HeaderCell>Approve</HeaderCell>
-                            )}
-                            {type == "recieved" && (
-                                <HeaderCell>Reject</HeaderCell>
-                            )}
-                        </Row>
-                    </Header>
-                    <Body>{renderedRows}</Body>
-                </Table>
-            );
-        }
 
-        if (renderedTables.length == 0) {
-            renderedTables.push(
-                <Message>
-                    <Message.Header>
-                        You do not have unprocessed Requests.
-                    </Message.Header>
-                </Message>
-            );
+            if (renderedRows.length == 0) {
+                renderedTables.push(
+                    <Message>
+                        <Message.Header>
+                            You do not have unprocessed Requests.
+                        </Message.Header>
+                    </Message>
+                );
+            } else {
+                renderedTables.push(
+                    <Table striped selectable celled textAlign="center">
+                        <Header>
+                            <Row>
+                                <HeaderCell
+                                    colSpan={type == "recieved" ? 3 : 2}
+                                >
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">{contract}</Header>
+                                        }
+                                        content="Contract Addresss"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                                <HeaderCell>
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">
+                                                {productName}
+                                            </Header>
+                                        }
+                                        content="Product Name"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                                <HeaderCell>
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">
+                                                {universalProductCode}
+                                            </Header>
+                                        }
+                                        content="Universal Product Code"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                                <HeaderCell
+                                    colSpan={type == "recieved" ? 2 : 1}
+                                >
+                                    <Popup
+                                        trigger={
+                                            <Header as="h3">
+                                                {totalBatches} Left
+                                            </Header>
+                                        }
+                                        content="Quantity Left"
+                                        position="top center"
+                                        inverted
+                                    />
+                                </HeaderCell>
+                            </Row>
+                            <Row>
+                                <HeaderCell>Request Id</HeaderCell>
+                                <HeaderCell>Sender Address</HeaderCell>
+                                <HeaderCell>Sender Name</HeaderCell>
+                                <HeaderCell>Batch Quantity</HeaderCell>
+                                <HeaderCell>Request Status</HeaderCell>
+                                {type == "recieved" && (
+                                    <HeaderCell>Approve</HeaderCell>
+                                )}
+                                {type == "recieved" && (
+                                    <HeaderCell>Reject</HeaderCell>
+                                )}
+                            </Row>
+                        </Header>
+                        <Body>{renderedRows}</Body>
+                    </Table>
+                );
+            }
         }
 
         return renderedTables;

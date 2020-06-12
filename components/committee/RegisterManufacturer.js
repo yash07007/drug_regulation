@@ -10,7 +10,7 @@ import {
     Grid,
 } from "semantic-ui-react";
 import factory from "../../ethereum/factory";
-import ManufactuerList from "./ManufacturerList";
+import ActorList from "./ActorList";
 import web3 from "../../ethereum/web3";
 
 class RegisterManufacturer extends Component {
@@ -59,7 +59,10 @@ class RegisterManufacturer extends Component {
             <Tab.Pane style={{ borderColor: "blue", borderRadius: "5px" }}>
                 <Grid columns="equal">
                     <Grid.Row>
-                        <ManufactuerList color="blue" />
+                        <ActorList
+                            color="blue"
+                            head="Registered Manufacturers"
+                        />
                         <Grid.Column>
                             <Segment
                                 style={{ borderColor: "blue" }}

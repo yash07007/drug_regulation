@@ -62,8 +62,8 @@ class Inventory extends Component {
             const supplyTrack = SupplyTrack(contracts[i]);
             const trackProduct = await supplyTrack.methods.product().call();
             const trackInventory = await supplyTrack.methods
-                .getInventory()
-                .call({ from: accounts[0] });
+                .getInventory(accounts[0])
+                .call();
             inventory[contracts[i]] = { trackInventory, trackProduct };
         }
 
@@ -86,6 +86,13 @@ class Inventory extends Component {
                 locallyRenderedInventoryLabels.push(
                     <List.Item>
                         <strong>{trackInventory[batchId]}</strong>
+                    </List.Item>
+                );
+            }
+            if (locallyRenderedInventoryLabels.length == 0) {
+                locallyRenderedInventoryLabels.push(
+                    <List.Item>
+                        <strong>You don't own any product of this type.</strong>
                     </List.Item>
                 );
             }
@@ -177,7 +184,7 @@ class Inventory extends Component {
                                 horizontal
                                 attached="top"
                             >
-                                Batch Ids
+                                Owned Batch Ids
                             </Label>
                             <List divided horizontal>
                                 {locallyRenderedInventoryLabels}
@@ -225,7 +232,7 @@ class Inventory extends Component {
                             <Loader size="large">Loading</Loader>
                         </Dimmer>
                         {loading ? (
-                            <Placeholder>
+                            <Placeholder fluid>
                                 <Placeholder.Paragraph>
                                     <Placeholder.Line />
                                     <Placeholder.Line />
